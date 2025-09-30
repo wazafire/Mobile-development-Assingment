@@ -100,6 +100,16 @@ class _LoginPageState extends State<LoginPage> {
                 },
                 child: const Text("Login"),
               ),
+
+              ElevatedButton(
+                child: const Text("Go to Reports"),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const ReportsScreen()),
+                  );
+                },
+              ),
             ],
           ),
         ),
