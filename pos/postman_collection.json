@@ -1,0 +1,56 @@
+{
+  "info": {
+    "name": "TaxAuthorityMockCollection",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "POST /tax/invoice - success",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"status\": \"ACCEPTED\",\n  \"authority_reference\": \"TAX-REF-20250927-12345\",\n  \"received_at\": \"2025-09-27T12:34:56Z\"\n}"
+        },
+        "url": {
+          "raw": "https://{{mock_host}}/tax/invoice",
+          "host": ["{{mock_host}}"],
+          "path": ["tax", "invoice"]
+        }
+      }
+    },
+    {
+      "name": "POST /tax/invoice - validation error",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"status\": \"REJECTED\",\n  \"errors\": [\"missing seller.tin\"]\n}"
+        },
+        "url": {
+          "raw": "https://{{mock_host}}/tax/invoice",
+          "host": ["{{mock_host}}"],
+          "path": ["tax", "invoice"]
+        }
+      }
+    },
+    {
+      "name": "POST /tax/invoice - server error",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"status\": \"ERROR\",\n  \"message\": \"temporary server error\"\n}"
+        },
+        "url": {
+          "raw": "https://{{mock_host}}/tax/invoice",
+          "host": ["{{mock_host}}"],
+          "path": ["tax", "invoice"]
+        }
+      }
+    }
+  ]
+}

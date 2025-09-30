@@ -1,0 +1,17 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "EInvoice",
+  "type": "object",
+  "required": ["invoice_id", "timestamp", "seller", "items", "totals", "currency"],
+  "properties": {
+    "invoice_id": {"type": "string"},
+    "timestamp": {"type": "string", "format": "date-time"},
+    "seller": {"type": "object"},
+    "buyer": {"type": "object"},
+    "items": {"type": "array"},
+    "totals": {"type": "object"},
+    "currency": {"type": "string"},
+    "payment_method": {"type": "string"},
+    "metadata": {"type": "object"}
+  }
+}
