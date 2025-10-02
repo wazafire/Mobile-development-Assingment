@@ -1,63 +1,68 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 import 'cart.dart';
-import 'cart_page.dart';
 import 'get_cart.dart';
 
-class ProductsPage extends StatelessWidget {
+class ProductsPage extends StatefulWidget {
   final String category;
-
   const ProductsPage({super.key, required this.category});
 
   @override
-  Widget build(BuildContext context) {
-    List<Map<String, dynamic>> products = [];
+  State<ProductsPage> createState() => _ProductsPageState();
+}
 
-    if (category == 'main_meals') {
-      products = [
-        {'name': 'Nshima with Chikanda (African polony)', 'price': 30},
-        {'name': 'Nshima with Grilled Fish', 'price': 50},
-        {'name': 'Nshima with Ifisashi (vegetable peanut stew)', 'price': 35},
-        {'name': 'Nshima with Beef Stew', 'price': 45},
-        {'name': 'Fried Kapenta with Nshima', 'price': 40},
-        {'name': 'Spaghetti Bolognese', 'price': 55},
-        {'name': 'Chicken Alfredo Pasta', 'price': 60},
-        {'name': 'Cheeseburger with Fries', 'price': 45},
-        {'name': 'Grilled Steak with Mashed Potatoes', 'price': 80},
-        {'name': 'Caesar Salad with Grilled Chicken', 'price': 50},
-      ];
-    } else if (category == 'drinks') {
-      products = [
-        {'name': 'Water', 'price': 5},
-        {'name': 'Coffee', 'price': 15},
-        {'name': 'Coca-Cola', 'price': 10},
-        {'name': 'Fanta', 'price': 10},
-        {'name': 'Orange Juice', 'price': 15},
-        {'name': 'Apple Juice', 'price': 15},
-      ];
-    } else if (category == 'side_dishes') {
-      products = [
-        {'name': 'French Fries', 'price': 20},
-        {'name': 'Coleslaw', 'price': 15},
-        {'name': 'Mashed Potatoes', 'price': 20},
-        {'name': 'Garlic Bread', 'price': 15},
-        {'name': 'Stir-Fried Vegetables', 'price': 25},
-        {'name': 'Wings', 'price': 35},
-        {'name': 'Fried Plantains', 'price': 20},
-        {'name': 'Rice', 'price': 15},
-        {'name': 'Potato Wedges', 'price': 20},
-        {'name': 'Garden Salad', 'price': 25},
-      ];
+class _ProductsPageState extends State<ProductsPage> {
+  List<Map<String, dynamic>> products = [];
+  bool isLoading = true;
+
+  final String baseUrl = "http://10.16.119.98:8000"; // Android emulator
+
+  @override
+  void initState() {
+    super.initState();
+    fetchProducts();
+  }
+
+  Future<void> fetchProducts() async {
+    try {
+      final response = await http.get(
+        Uri.parse("$baseUrl/products/products/?category=main_meals' "),
+      );
+
+      if (response.statusCode == 200) {
+        List<dynamic> data = json.decode(response.body);
+        setState(() {
+          products = data.map((e) => Map<String, dynamic>.from(e)).toList();
+          isLoading = false;
+        });
+      } else {
+        setState(() {
+          isLoading = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Failed to load products")),
+        );
+      }
+    } catch (e) {
+      setState(() {
+        isLoading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error: $e")),
+      );
     }
+  }
 
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(categoryToTitle(category)),
+        title: Text(categoryToTitle(widget.category)),
         backgroundColor: Colors.deepOrange,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            Navigator.pop(context);
-          },
+          onPressed: () => Navigator.pop(context),
         ),
         actions: [
           IconButton(
@@ -71,24 +76,29 @@ class ProductsPage extends StatelessWidget {
           ),
         ],
       ),
-      body: ListView.builder(
+      body: isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : products.isEmpty
+          ? const Center(child: Text("No products found"))
+          : ListView.builder(
         itemCount: products.length,
         itemBuilder: (context, index) {
           final item = products[index];
           return Card(
-            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            margin: const EdgeInsets.symmetric(
+                horizontal: 16, vertical: 8),
             child: ListTile(
               title: Text(item['name']),
               subtitle: Text('Price: ZMW ${item['price']}'),
               trailing: ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.deepOrange,
-                ),
+                    backgroundColor: Colors.deepOrange),
                 onPressed: () {
-                  Cart.addItem(item); // Add item to global cart
+                  Cart.addItem(item);
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text('${item['name']} added to cart'),
+                      content:
+                      Text('${item['name']} added to cart'),
                       duration: const Duration(seconds: 1),
                     ),
                   );

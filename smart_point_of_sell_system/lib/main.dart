@@ -1,13 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:smart_point_of_sell_system/reports_screen.dart';
 import 'Views/cart.dart';
 import 'Views/home.dart';
 import 'Views/payment.dart';
 import 'Views/product_list.dart';
-import 'reports_screen.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 void main() {
   runApp(const MyApp());
 }
+
+const String baseUrl = "http:// 10.16.119.98:8000"; // backend URL for Android emulator
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -21,9 +25,10 @@ class MyApp extends StatelessWidget {
       routes: {
         '/': (context) => const LoginPage(),
         '/home': (context) => const HomePage(),
-        '/products': (context) => const ProductsPage(category: '',),
+        '/products': (context) => const ProductsPage(category: ''),
         '/cart': (context) => const CartPage(),
         '/payment': (context) => const PaymentPage(),
+        '/reports': (context) => const ReportsScreen(),
       },
     );
   }
@@ -37,10 +42,26 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  final TextEditingController emailController = TextEditingController();
+  final TextEditingController usernameController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
-
   final _formKey = GlobalKey<FormState>();
+  bool _loading = false;
+
+  Future<void> login() async {
+    setState(() => _loading = true);
+    final username = usernameController.text.trim();
+    final password = passwordController.text.trim();
+
+    // Simple hardcoded login
+    if (username == 'wazafire@gmail.com' && password == '123456') {
+      Navigator.pushReplacementNamed(context, '/home');
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Invalid username or password")),
+      );
+    }
+    setState(() => _loading = false);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -53,24 +74,16 @@ class _LoginPageState extends State<LoginPage> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // Email field
               TextFormField(
-                controller: emailController,
+                controller: usernameController,
                 decoration: const InputDecoration(
-                  labelText: "Email",
+                  labelText: "Username",
                   border: OutlineInputBorder(),
                 ),
-                keyboardType: TextInputType.emailAddress,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return "Please enter your email";
-                  }
-                  return null;
-                },
+                validator: (value) =>
+                value == null || value.isEmpty ? "Enter username" : null,
               ),
               const SizedBox(height: 16),
-
-              // Password field
               TextFormField(
                 controller: passwordController,
                 decoration: const InputDecoration(
@@ -79,34 +92,30 @@ class _LoginPageState extends State<LoginPage> {
                 ),
                 obscureText: true,
                 validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return "Please enter your password";
-                  }
-                  if (value.length < 6) {
-                    return "Password must be at least 6 characters";
-                  }
+                  if (value == null || value.isEmpty) return "Enter password";
+                  if (value.length < 6) return "Password too short";
                   return null;
                 },
               ),
               const SizedBox(height: 24),
-
-              // Login button
               ElevatedButton(
-                onPressed: () {
-                  if (_formKey.currentState!.validate()) {
-                    // For now: just navigate to home
-                    Navigator.pushReplacementNamed(context, '/home');
-                  }
+                onPressed: _loading
+                    ? null
+                    : () {
+                  if (_formKey.currentState!.validate()) login();
                 },
-                child: const Text("Login"),
+                child: _loading
+                    ? const CircularProgressIndicator()
+                    : const Text("Login"),
               ),
-
+              const SizedBox(height: 10),
               ElevatedButton(
                 child: const Text("Go to Reports"),
                 onPressed: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => const ReportsScreen()),
+                    MaterialPageRoute(
+                        builder: (context) => const ReportsScreen()),
                   );
                 },
               ),

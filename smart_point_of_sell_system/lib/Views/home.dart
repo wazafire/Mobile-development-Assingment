@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:smart_point_of_sell_system/Views/product_list.dart';
 import 'cart.dart';
-import 'products_page.dart';
+
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});

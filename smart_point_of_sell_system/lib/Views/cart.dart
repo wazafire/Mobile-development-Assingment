@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:smart_point_of_sell_system/Views/payment.dart';
 import 'cart.dart';
 import 'get_cart.dart';
-import 'payment_page.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class CartPage extends StatefulWidget {
   const CartPage({super.key});
@@ -63,7 +64,6 @@ class _CartPageState extends State<CartPage> {
               },
             ),
           ),
-          // Total row
           Container(
             padding: const EdgeInsets.all(16),
             color: Colors.orange[100],
@@ -83,7 +83,6 @@ class _CartPageState extends State<CartPage> {
               ],
             ),
           ),
-          // Action buttons
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: Column(
@@ -135,13 +134,50 @@ class _CartPageState extends State<CartPage> {
             child: const Text("No"),
           ),
           ElevatedButton(
-            style:
-            ElevatedButton.styleFrom(backgroundColor: Colors.deepOrange),
-            onPressed: () {
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.deepOrange),
+            onPressed: () async {
               Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text("Order confirmed!")),
-              );
+
+              double total = Cart.getTotal();
+              String today = DateTime.now().toIso8601String().split("T")[0];
+
+              List<Map<String, dynamic>> items = Cart.items
+                  .map((item) => {
+                "product_name": item['name'],
+                "quantity": item['quantity'],
+                "price": item['price'],
+              })
+                  .toList();
+
+              try {
+                final res = await http.post(
+                  Uri.parse("http:// 10.16.119.98:8000/orders"),
+                  headers: {"Content-Type": "application/json"},
+                  body: json.encode({
+                    "date": today,
+                    "total": total,
+                    "items": items,
+                  }),
+                );
+
+                if (res.statusCode == 200) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text("Order saved successfully!")),
+                  );
+                  Cart.clear();
+                  setState(() {});
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                        content:
+                        Text("Failed to save order: ${res.statusCode}")),
+                  );
+                }
+              } catch (e) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text("Error: $e")),
+                );
+              }
             },
             child: const Text("Yes"),
           ),
